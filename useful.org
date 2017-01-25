@@ -1,0 +1,174 @@
+#+TITLE:  Useful
+#+AUTHOR: Rick Neff
+#+EMAIL:  rick.neff@gmail.com
+#+LANGUAGE:  en
+#+OPTIONS:   H:4 num:nil toc:nil \n:nil @:t ::t |:t ^:t *:t TeX:t LaTeX:t
+#+STARTUP:   overview
+
+* Before Use
+  It would be preferable to set up a few things to avoid being prompted for input as each repo is downloaded.
+  
+  Make sure you've set your home variable
+
+  Setup credential cacheing (See http://stackoverflow.com/questions/5343068/is-there-a-way-to-skip-password-typing-when-using-https-on-github) This is done in Git Bash.
+
+  Set a default for remote.pushDefault ( SPC SPC customize-variable magit-clone-set-remote.pushDefault ). I don't know exactly what the difference is between the two settings, but you -really- don't want it on ~ask~, or else it will prompt you for every repo that you download.
+
+* Elisp Code 
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(require 'cl)
+(setq localPath "C:\\Users\\Joseph\\AppData\\Roaming\\Tutoring")
+
+;; Github class names
+  (setq dm2 "rmn97152")
+
+  (setq dm3 "rmn97153")
+
+  (setq dm1Weeks
+'(("week01" t nil)))
+  ;; Lists of assignments and whether they have team/individual componets
+  ;; (week, hasIndividual, hasTeam)
+  (setq dm2Weeks
+  '(("week00" t nil)
+   ("week01" nil t)
+   ("week02" nil t)))
+
+  (setq dm3Weeks
+  '(("week00" t nil)
+   ("week01" nil t)
+   ("week02" nil t)))
+
+  ;; Lists of class teams
+  (setq dm2Teams
+  '(("friendly-pancake" "team001")
+  ("rogue-one" "team002")
+  ("Stormtrooper-Sharpshooters" "team003")
+  ("team-one" "team004")
+  ("techbound" "team005")
+  ("the-golden-badger-crew" "team006")))
+
+
+  (setq dm3Teams
+  '(("Bayes-Squared" "team001")
+  ("bumblebee-squad" "team002")
+  ("MJ" "team003")))
+
+  ;; Lists of students (github username, student number, student identifier (inumber or name, up to Bro. Neff)
+  (setq dm3Students
+  '(("abegjeff" "Student001" "")
+  ("ConsoleBeep" "Student002" "")
+  ("eversolea" "Student003" "")
+  ("JonathonBraunesreither" "Student004" "")
+  ("keanedawg" "Student005" "")
+  ("Laksh511" "Student006" "")
+  ("mhartle2" "Student007" "")
+  ("Roman-Sanchez" "Student008" "")
+  ("wkshumway" "Student009" "")))
+
+  (setq dm2Students
+  '(("alanxoc3" "Student001" "")
+  ("alexandercasal" "Student002" "")
+  ("chrisbdaemon" "Student003" "")
+  ("coljamkop" "Student004" "")
+  ("ericburdett" "Student005" "")
+  ("eversolea" "Student006" "")
+  ("Gowthar" "Student007" "")
+  ("Gwinert" "Student008" "")
+  ("joshbackstein" "Student009" "")
+  ("keanedawg" "Student010" "")
+  ("michaellucero" "Student011" "")
+  ("mikehill0917" "Student012" "")
+  ("mining246" "Student013" "")
+  ("QuadeMorrison" "Student014" "")
+  ("rhubba4863" "Student015" "")
+  ("Roman-Sanchez" "Student016" "")
+  ("sethchilders92" "Student017" "")
+  ("TravisCon" "Student018" "")))
+
+  (defun createGradingBranch (localPath class week)
+    (if (nth 1 (assoc week (classToWeeks class)))
+      (loop for student in (classToStudents class) do
+        (find-file (createFullLocalPath localPath class week (nth 1 student)))
+        (magit-branch "Grading" "Master")
+        (magit-checkout "Grading")
+        (kill-buffer (nth 1 student)))
+      nil)
+    (if (nth 2 (assoc week (classToWeeks class)))
+      (loop for team in (classToTeams class) do
+        (find-file (createFullLocalPath localPath class week (nth 1 student)))
+        (magit-branch "Grading" "Master")
+        (magit-checkout "Grading")
+        (kill-buffer (nth 1 team)))
+       nil))
+
+  (defun cloneGitRepo (localPath class week)
+    (if (nth 1 (assoc week (classToWeeks class)))
+      (loop for student in (classToStudents class) do
+        (magit-clone (createGitPath class week (nth 0 student))
+                     (createFullLocalPath localPath class week (nth 1 student))))
+      nil)
+    (if (nth 2 (assoc week (classToWeeks class)))
+      (loop for team in (classToTeams class) do
+        (magit-clone (createGitPath class week (nth 0 team))
+                     (createFullLocalPath localPath class week (nth 1 team))))
+      nil))
+
+  (defun createFullLocalPath (localPath class week repoID)
+    (concat localPath "//" class "//" week "//" repoID))
+
+
+  (defun classToWeeks (class)
+     (cond ((string= class "dm1") dm1Weeks)
+           ((string= class "dm2") dm2Weeks)
+           ((string= class "dm3") dm3Weeks)
+           ((string= class "dm4") dm4Weeks)))
+
+  (defun classToStudents (class)
+     (cond ((string= class "dm1") dm1Students)
+           ((string= class "dm2") dm2Students)
+           ((string= class "dm3") dm3Students)
+           ((string= class "dm4") dm4Students)))
+
+  (defun weekToAssignmentName (week)
+    (concat "wa" (substring week -2 nil) ".org"))
+
+  (defun classToTeams (class)
+     (cond ((string= class "dm1") dm1Teams)
+           ((string= class "dm2") dm2Teams)
+           ((string= class "dm3") dm3Teams)
+           ((string= class "dm4") dm4Teams)))
+
+  (defun createGitPath (class week item)
+    (setq gitPath (concat "https://github.com/rmn9715"
+                     (cond ((string= class "dm1") "1")
+                           ((string= class "dm2") "2")
+                           ((string= class "dm3") "3")
+                           ((string= class "dm4") "4"))
+                     "/" class week "-" item ".git")))
+
+  (defun openAssignments (class week)
+    (if (nth 1 (assoc week (classToWeeks class)))
+      (loop for student in (classToStudents class) do
+        (switch-to-buffer (find-file-noselect (concat
+                           (createFullLocalPath localPath class week (nth 1 student)))
+                           "//" weekToAssignmentName(week))))
+      nil)
+    (if (nth 2 (assoc week (classToWeeks class)))
+      (loop for team in (classToTeams class) do
+        (switch-to-buffer (find-file-noselect (concat
+                           (createFullLocalPath localPath class week (nth 1 team)))
+                           "//" weekToAssignmentName(week))))
+      nil))
+(cloneGitRepo localPath "dm2" "week01")
+#+END_SRC
+
+#+RESULTS:
+
+#+BEGIN_SRC emacs-lisp
+  ;;(openAllClassAssignments "cs237-2" "exs" "8th-exercises")
+  ;;(openAllClassAssignments "cs237-2" "qaf" "Bth-quiz")
+#+END_SRC
+
+#+RESULTS:
+
