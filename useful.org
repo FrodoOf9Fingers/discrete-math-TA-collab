@@ -33,6 +33,7 @@
 
   (setq dm1Weeks
 '(("week01" t nil)))
+
   ;; Lists of assignments and whether they have team/individual componets
   ;; (week, hasIndividual, hasTeam)
   (setq dm2Weeks
@@ -171,7 +172,8 @@
     (if (nth 1 (assoc week (classToWeeks class)))
       (loop for student in (classToStudents class) do
         (magit-clone (createGitPath class week (nth 0 student))
-                     (createFullLocalPath localPath class week (nth 1 student))))
+                     (createFullLocalPath localPath class week (nth 1 student)))
+        (sleep-for 1))
       nil)
     (if (nth 2 (assoc week (classToWeeks class)))
       (loop for team in (classToTeams class) do
@@ -180,33 +182,23 @@
       nil))
 
   (defun createFullLocalPath (localPath class week repoID)
-    (concat localPath "//" class "//" week "//" repoID))
-
+    (concat localPath "\\" class "\\" week "\\" repoID "\\"))
 
   (defun classToWeeks (class)
-     (cond ((string= class "dm1") dm1Weeks)
-           ((string= class "dm2") dm2Weeks)
-           ((string= class "dm3") dm3Weeks)
-           ((string= class "dm4") dm4Weeks)))
+    (symbol-value (intern (concat class "Weeks"))))
 
   (defun classToStudents (class)
-     (cond ((string= class "dm1") dm1Students)
-           ((string= class "dm2") dm2Students)
-           ((string= class "dm3") dm3Students)
-           ((string= class "dm4") dm4Students)))
+    (symbol-value (intern (concat class "Students"))))
 
   (defun weekToAssignmentName (week)
     (concat "wa" (substring week -2 nil) ".org"))
 
   (defun classToTeams (class)
-     (cond ((string= class "dm1") dm1Teams)
-           ((string= class "dm2") dm2Teams)
-           ((string= class "dm3") dm3Teams)
-           ((string= class "dm4") dm4Teams)))
+    (symbol-value (intern (concat class "Teams"))))
 
   (defun createGitPath (class week item)
     (setq gitPath (concat "https://github.com/rmn9715"
-                     (cond ((string= class "dm1") "1")
+                     (cond ((string= class "dm1") "")
                            ((string= class "dm2") "2")
                            ((string= class "dm3") "3")
                            ((string= class "dm4") "4"))
@@ -216,16 +208,18 @@
     (if (nth 1 (assoc week (classToWeeks class)))
       (loop for student in (classToStudents class) do
         (switch-to-buffer (find-file-noselect (concat
-                           (createFullLocalPath localPath class week (nth 1 student)))
-                           "//" weekToAssignmentName(week))))
+                           (createFullLocalPath localPath class week (nth 1 student))
+                           (weekToAssignmentName week)))))
       nil)
     (if (nth 2 (assoc week (classToWeeks class)))
       (loop for team in (classToTeams class) do
-        (switch-to-buffer (find-file-noselect (concat
-                           (createFullLocalPath localPath class week (nth 1 team)))
-                           "//" weekToAssignmentName(week))))
+        (switch-to-buffer (find-file (concat
+                           (createFullLocalPath localPath class week (nth 1 team))
+                           (weekToAssignmentName week)))))
       nil))
-(cloneGitRepo localPath "dm1" "week01")
+;(cloneGitRep localPath "dm1" "week01")
+;(createGradingBranch localPath "dm1" "week01")
+(openAssignments "dm1" "week01")
 #+END_SRC
 
 #+RESULTS:
