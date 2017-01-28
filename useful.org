@@ -6,19 +6,25 @@
 #+STARTUP:   overview
 
 * Before Use
-  It would be preferable to set up a few things to avoid being prompted for input as each repo is downloaded.
+  It would be preferable to set up a few things to avoid being prompted for
+  input as each repo is downloaded.
   
   Make sure you've set your home variable
 
-  Setup credential cacheing (See http://stackoverflow.com/questions/5343068/is-there-a-way-to-skip-password-typing-when-using-https-on-github) This is done in Git Bash.
+  Setup credential cacheing (See
+  http://stackoverflow.com/questions/5343068/is-there-a-way-to-skip-password-typing-when-using-https-on-github)
+  This is done in Git Bash.
 
-  Set a default for remote.pushDefault ( SPC SPC customize-variable magit-clone-set-remote.pushDefault ). I don't know exactly what the difference is between the two settings, but you -really- don't want it on ~ask~, or else it will prompt you for every repo that you download.
+  Set a default for remote.pushDefault ( SPC SPC customize-variable
+  magit-clone-set-remote.pushDefault ). I don't know exactly what the difference
+  is between the two settings, but you -really- don't want it on ~ask~, or else
+  it will prompt you for every repo that you download.
 
 * Elisp Code 
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (require 'cl)
-(setq localPath "C:\\Users\\Joseph\\AppData\\Roaming\\Tutoring")
+(setq localPath "C:\\Users\\Joseph\\AppData\\Roaming\\SchoolWork\\TeacherAssistant")
 
 ;; Github class names
   (setq dm2 "rmn97152")
@@ -85,6 +91,65 @@
   ("Roman-Sanchez" "Student016" "")
   ("sethchilders92" "Student017" "")
   ("TravisCon" "Student018" "")))
+
+  (setq dm1Students
+  '(("jkalldre" "Student001" "")
+  ("ClownBacon45" "Student002" "")
+  ("cameronball183461" "Student003" "")
+  ("tjab6" "Student004" "")
+  ("Beesleyz" "Student005" "")
+  ("meritcapener" "Student006" "")
+  ("Where44444" "Student007" "")
+  ("jasonchio" "Student008" "")
+  ("fmchora" "Student009" "")
+  ("Dillongc21" "Student010" "")
+  ("ecollett1" "Student011" "")
+  ("skazerk" "Student012" "")
+  ("danielmartincraig" "Student013" "")
+  ("jcurtis369" "Student014" "")
+  ("bdamitz" "Student015" "")
+  ("spiritnsky" "Student016" "")
+  ("bendzado" "Student017" "")
+  ("benjameep" "Student018" "")
+  ("sellis5566" "Student019" "")
+  ("cambreafisher" "Student020" "")
+  ("rfowler1994" "Student021" "")
+  ("yellowbronco71" "Student022" "")
+  ("15gagnonp" "Student023" "")
+  ("anuar161189" "Student024" "")
+  ("Herofly58" "Student025" "")
+  ("DerHabicht" "Student026" "")
+  ("caleblj" "Student027" "")
+  ("tyjkenn" "Student028" "")
+  ("nnlamb25" "Student029" "")
+  ("davego44" "Student030" "")
+  ("mdanielp" "Student031" "")
+  ("Shua11" "Student032" "")
+  ("jake61392" "Student033" "")
+  ("Brooken2" "Student034" "")
+  ("scott56gps" "Student035" "")
+  ("bigbruh62" "Student036" "")
+  ("ke7soccerman" "Student037" "")
+  ("jarreed0" "Student038" "")
+  ("ilia-ilia14" "Student039" "")
+  ("jcreager11" "Student040" "")
+  ("JohnSmidt" "Student041" "")
+  ("alyssansmith" "Student042" "")
+  ("ksnider92" "Student043" "")
+  ("DavidTilley" "Student044" "")
+  ("edceln" "Student045" "")
+  ("vajpov" "Student046" "")
+  ("jsvilchis" "Student047" "")
+  ("cynblkfox" "Student048" "")
+  ("parkerweech" "Student049" "")
+  ("welkerbrendon" "Student050" "")
+  ("mjnks" "Student051" "")
+  ("woolleylandon" "Student052" "")
+  ("bwright400" "Student053" "")
+  ("pianomn16" "Student054" "")
+  ("diakoptes" "Student055" "")
+  ("rhubba4863" "Student056" "")))
+
 
   (defun createGradingBranch (localPath class week)
     (if (nth 1 (assoc week (classToWeeks class)))
@@ -160,7 +225,7 @@
                            (createFullLocalPath localPath class week (nth 1 team)))
                            "//" weekToAssignmentName(week))))
       nil))
-(cloneGitRepo localPath "dm2" "week01")
+(cloneGitRepo localPath "dm1" "week01")
 #+END_SRC
 
 #+RESULTS:
