@@ -24,7 +24,11 @@
 
 #+BEGIN_SRC emacs-lisp :tangle yes
 (require 'cl)
-(setq localPath "C:\\Users\\Joseph\\AppData\\Roaming\\SchoolWork\\TeacherAssistant")
+
+;; shell-command requires that we use the native machine's directory seperator.
+;; If you are not using windows, change the following variable to 1 forward slash '/'.
+(setq dirSep "\\")
+(setq localPath "C:\\Users\\Joseph\\temp")
 
 ;; Github class names
   (setq dm2 "rmn97152")
@@ -61,7 +65,7 @@
   ("bumblebee-squad" "team002")
   ("MJ" "team003")))
 
-  ;; Lists of students (github username, student number, student identifier (inumber or name, up to Bro. Neff)
+  ;; Lists of students (github username, student number, student identifier (inumber or name, up to Bro. Neff))
   (setq dm3Students
   '(("abegjeff" "Student001" "")
   ("ConsoleBeep" "Student002" "")
@@ -152,81 +156,72 @@
   ("rhubba4863" "Student056" "")))
 
 
-  (defun createGradingBranch (localPath class week)
-    (if (nth 1 (assoc week (classToWeeks class)))
-      (loop for student in (classToStudents class) do
-        (find-file (createFullLocalPath localPath class week (nth 1 student)))
-        (magit-branch "Grading" "Master")
-        (magit-checkout "Grading")
-        (kill-buffer (nth 1 student)))
-      nil)
-    (if (nth 2 (assoc week (classToWeeks class)))
-      (loop for team in (classToTeams class) do
-        (find-file (createFullLocalPath localPath class week (nth 1 student)))
-        (magit-branch "Grading" "Master")
-        (magit-checkout "Grading")
-        (kill-buffer (nth 1 team)))
-       nil))
+  (defun shell-git-create-branch (path branch-name)
+    (let ((default-directory path))
+      (shell-command (concat "git branch " branch-name))))
 
-  (defun cloneGitRepo (localPath class week)
-    (if (nth 1 (assoc week (classToWeeks class)))
-      (loop for student in (classToStudents class) do
-        (magit-clone (createGitPath class week (nth 0 student))
-                     (createFullLocalPath localPath class week (nth 1 student)))
-        (sleep-for 1))
-      nil)
-    (if (nth 2 (assoc week (classToWeeks class)))
-      (loop for team in (classToTeams class) do
-        (magit-clone (createGitPath class week (nth 0 team))
-                     (createFullLocalPath localPath class week (nth 1 team))))
-      nil))
+  (defun shell-git-clone-repo (path repo folder-name)
+   (message path)
+   (shell-command (concat "mkdir " path))
+   (let ((default-directory path))
+     (shell-command (concat "git clone " repo " " path dirSep folder-name))))
+
+  (defun shell-git-commit-push (path message)
+    (let ((default-directory path))
+      (shell-command (concat "git commit -a -m \"" message "\""))
+      (shell-command "git push")))
+
+  (defun shell-git-switch-branch (path branch-name)
+    (let ((default-directory path))
+      (shell-command (concat "git checkout " branch-name))))
+
+  (defun createGradingBranch (localPath class week owner)
+      (loop for owner in owners do
+        (shell-git-create-branch (createFullLocalPath localPath class week (nth 1 owner)) "Grading")
+        (shell-git-switch-branch (createFullLocalPath localPath class week (nth 1 owner)) "Grading")))
+
+
+  (defun cloneGitRepo (localPath class week owners)
+      (loop for owner in owners do
+        (shell-git-clone-repo (concat localPath dirSep class dirSep week) 
+                              (createGitPath class week (nth 0 owner)) 
+                              (nth 1 owner)) 
+        (sleep-for 2))) ;;Required with magit, not sure about shell-command
+
+  (defun commitPushGit (localPath class week owners)
+    (loop for owner in owners do
+      (shell-git-commit-push (createFullLocalPath localPath class week (nth 1 owner)) "Grading is done")))
 
   (defun createFullLocalPath (localPath class week repoID)
-    (concat localPath "\\" class "\\" week "\\" repoID "\\"))
-
-  (defun classToWeeks (class)
-    (symbol-value (intern (concat class "Weeks"))))
-
-  (defun classToStudents (class)
-    (symbol-value (intern (concat class "Students"))))
+    (concat localPath dirSep class dirSep week dirSep repoID dirSep))
 
   (defun weekToAssignmentName (week)
     (concat "wa" (substring week -2 nil) ".org"))
 
-  (defun classToTeams (class)
-    (symbol-value (intern (concat class "Teams"))))
-
-  (defun createGitPath (class week item)
+  (defun createGitPath (class week owner)
     (setq gitPath (concat "https://github.com/rmn9715"
                      (cond ((string= class "dm1") "")
                            ((string= class "dm2") "2")
                            ((string= class "dm3") "3")
                            ((string= class "dm4") "4"))
-                     "/" class week "-" item ".git")))
+                     "/" class week "-" owner ".git")))
 
-  (defun openAssignments (class week)
-    (if (nth 1 (assoc week (classToWeeks class)))
-      (loop for student in (classToStudents class) do
+  (defun openAssignments (class week owners)
+      (loop for owner in owners do
         (switch-to-buffer (find-file-noselect (concat
-                           (createFullLocalPath localPath class week (nth 1 student))
-                           (weekToAssignmentName week)))))
-      nil)
-    (if (nth 2 (assoc week (classToWeeks class)))
-      (loop for team in (classToTeams class) do
-        (switch-to-buffer (find-file (concat
-                           (createFullLocalPath localPath class week (nth 1 team))
-                           (weekToAssignmentName week)))))
-      nil))
-;(cloneGitRep localPath "dm1" "week01")
-;(createGradingBranch localPath "dm1" "week01")
-(openAssignments "dm1" "week01")
+                           (createFullLocalPath localPath class week (nth 1 owner))
+                           (weekToAssignmentName week))))))
 #+END_SRC
 
 #+RESULTS:
 
 #+BEGIN_SRC emacs-lisp
-  ;;(openAllClassAssignments "cs237-2" "exs" "8th-exercises")
-  ;;(openAllClassAssignments "cs237-2" "qaf" "Bth-quiz")
+;;When working on a team assignment, make sure that you change dmXStudents to dmXTeams
+;;
+;(cloneGitRepo localPath "dm1" "week01" dm1Students)
+;(createGradingBranch localPath "dm1" "week01" dm1Students)
+;(openAssignments "dm1" "week01" dm1Students)
+;(commitPushGit localPath "dm1" "week01" dm1Students)
 #+END_SRC
 
 #+RESULTS:
