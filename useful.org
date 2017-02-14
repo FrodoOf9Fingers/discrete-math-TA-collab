@@ -28,7 +28,7 @@
 ;; shell-command requires that we use the native machine's directory seperator.
 ;; If you are not using windows, change the following variable to 1 forward slash '/'.
 (setq dirSep "\\")
-(setq localPath "C:\\Users\\Joseph\\temp")
+(setq localPath "C:\\Users\\Joseph\\AppData\\Roaming\\schoolWork\\TeacherAssistant")
 
 ;; Github class names
   (setq dm2 "rmn97152")
@@ -98,7 +98,7 @@
   ("TravisCon" "Student018" "")))
 
   (setq dm1Students
-  '(("jkalldre" "Student001" "")
+  '(;("jkalldre" "Student001" "")
   ("ClownBacon45" "Student002" "")
   ("cameronball183461" "Student003" "")
   ("tjab6" "Student004" "")
@@ -169,13 +169,24 @@
   (defun shell-git-commit-push (path message)
     (let ((default-directory path))
       (shell-command (concat "git commit -a -m \"" message "\""))
-      (shell-command "git push")))
+      (shell-command (concat "git push --set-upstream origin Grading"))))
 
   (defun shell-git-switch-branch (path branch-name)
     (let ((default-directory path))
       (shell-command (concat "git checkout " branch-name))))
 
-  (defun createGradingBranch (localPath class week owner)
+  (defun shell-git-migrate-to-new-branch (path branch-name)
+    (let ((default-directory path))
+      (shell-command "git stash")
+      (shell-command (concat "git branch " branch-name))
+      (shell-command (concat "git checkout " branch-name))
+      (shell-command "git stash pop")))
+
+  (defun migrateNewBranch (localPath class week owners)
+    (loop for owner in owners do
+      (shell-git-migrate-to-new-branch (createFullLocalPath localPath class week (nth 1 owner)) "Grading")))
+
+  (defun createGradingBranch (localPath class week owners)
       (loop for owner in owners do
         (shell-git-create-branch (createFullLocalPath localPath class week (nth 1 owner)) "Grading")
         (shell-git-switch-branch (createFullLocalPath localPath class week (nth 1 owner)) "Grading")))
@@ -210,10 +221,12 @@
       (loop for owner in owners do
         (switch-to-buffer (find-file-noselect (concat
                            (createFullLocalPath localPath class week (nth 1 owner))
-                           (weekToAssignmentName week))))))
+                           (weekToAssignmentName week))))
+        (bury-buffer)))
 #+END_SRC
 
 #+RESULTS:
+: openAssignments
 
 #+BEGIN_SRC emacs-lisp
 ;;When working on a team assignment, make sure that you change dmXStudents to dmXTeams
@@ -221,7 +234,8 @@
 ;(cloneGitRepo localPath "dm1" "week01" dm1Students)
 ;(createGradingBranch localPath "dm1" "week01" dm1Students)
 ;(openAssignments "dm1" "week01" dm1Students)
-;(commitPushGit localPath "dm1" "week01" dm1Students)
+;(migrateNewBranch localPath "dm1" "week01" dm1Students) ;;For if you forget to create a new branch before starting to grade.
+(commitPushGit localPath "dm1" "week01" dm1Students)
 #+END_SRC
 
 #+RESULTS:
