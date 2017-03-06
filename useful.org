@@ -4,6 +4,7 @@
 #+LANGUAGE:  en
 #+OPTIONS:   H:4 num:nil toc:nil \n:nil @:t ::t |:t ^:t *:t TeX:t LaTeX:t
 #+STARTUP:   overview
+#+SCORE: 999
 
 * Before Use
   It would be preferable to set up a few things to avoid being prompted for
@@ -231,12 +232,49 @@
 #+BEGIN_SRC emacs-lisp
 ;;When working on a team assignment, make sure that you change dmXStudents to dmXTeams
 ;;
-;(cloneGitRepo localPath "dm1" "week01" dm1Students)
-;(createGradingBranch localPath "dm1" "week01" dm1Students)
-;(openAssignments "dm1" "week01" dm1Students)
-;(migrateNewBranch localPath "dm1" "week01" dm1Students) ;;For if you forget to create a new branch before starting to grade.
-(commitPushGit localPath "dm1" "week01" dm1Students)
+;(cloneGitRepo localPath "dm1" "week00" dm1Students)
+;(createGradingBranch localPath "dm1" "week00" dm1Students)
+;(openAssignments "dm1" "week00" dm1Students)
+;(migrateNewBranch localPath "dm1" "week00" dm1Students) ;;For if you forget to create a new branch before starting to grade.
+;(commitPushGit localPath "dm1" "week00" dm1Students)
 #+END_SRC
 
 #+RESULTS:
+
+* Experimental Code
+#+BEGIN_SRC emacs-lisp :tangle yes
+(defun pull-score (assignBuffer)
+  (let (score (currBuffer (current-buffer)))
+    (set-buffer assignBuffer)
+    (setq score (jk-org-kwd "SCORE"))
+    (set-buffer currBuffer) score))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Retrieved from http://kitchingroup.cheme.cmu.edu/blog/2013/05/05/Getting-keyword-options-in-org-files/
+; suggested by Nicolas Goaziou
+(defun jk-org-kwds ()
+  "parse the buffer and return a cons list of (property . value)
+from lines like:
+#+PROPERTY: value"
+  (org-element-map (org-element-parse-buffer 'element) 'keyword
+                   (lambda (keyword) (cons (org-element-property :key keyword)
+                                           (org-element-property :value keyword)))))
+
+(defun jk-org-kwd (KEYWORD)
+  "get the value of a KEYWORD in the form of #+KEYWORD: value"
+  (cdr (assoc KEYWORD (jk-org-kwds))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+#+END_SRC
+
+#+RESULTS:
+: jk-org-kwd
+
+#+BEGIN_SRC emacs-lisp :tangle yes
+(push-score (find-file-noselect (createFullLocalPath localPath "dm1" "week00" (nth 1 (car dm1Students)))) 2 3 4)
+;(jk-org-kwd "SCORE")
+
+#+END_SRC
+
+#+RESULTS:
+: C:\Users\Joseph\AppData\Roaming\schoolWork\TeacherAssistant\dm1\week00\Student002\
 
